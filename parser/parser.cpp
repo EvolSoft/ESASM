@@ -2,7 +2,7 @@
  * ESASM (v1.0.0) by EvolSoft
  * Developer: EvolSoft
  * Website: http://www.evolsoft.tk
- * Date: 07/06/2015 11:43 AM (UTC)
+ * Date: 07/06/2015 02:01 PM (UTC)
  * Copyright & License: (C) 2015 EvolSoft
  * Licensed under MIT (https://github.com/EvolSoft/ESASM/blob/master/LICENSE)
  */
@@ -21,10 +21,45 @@
 
 using namespace std;
 
+bool hasOnlySpaces(string line){
+    return line.find_first_not_of(' ') == line.npos;
+}
+
 string trim(string line){
-    size_t f = line.find_first_not_of(' ');
-    size_t l = line.find_last_not_of(' ');
-    return line.substr(f, l-f+1);
+    if(!line.empty() && !hasOnlySpaces(line)){
+        size_t f = line.find_first_not_of(' ');
+        size_t l = line.find_last_not_of(' ');
+        return line.substr(f, l-f+1);
+    }else{
+        return "";
+    }
+}
+
+string fixSpaces(string line){
+    string out;
+    bool first = true;
+    bool space = false;
+    if(!line.empty() && !hasOnlySpaces(line)){
+        for(string::const_iterator it = line.begin(); it != line.end(); it++){
+            if(*it == ' '){
+                if(first == false){
+                    space = true;
+                }
+            }else if(*it != ' '){
+                if(space){
+                    out.push_back(' ');
+                }
+                out.push_back(*it);
+                space = false;
+                first = false;
+            }else{
+                space = false;
+            }
+        }
+        return out;
+    }else{
+        return "";
+    }
 }
 
 vector<string> split(string line) {
@@ -61,13 +96,16 @@ void Parser::parse(string filename, int type){
         while(getline(file, line)){
             fileline += 1;
             line = trim(line);
+            line = fixSpaces(line);
             line = removeComments(line);
-            vector<string> el = split(line);
-            transform(el[0].begin(), el[0].end(), el[0].begin(), ::tolower);
-            if(el[0].compare("aaa") == 0){
-                aaa aaa_ = aaa(this, el, filename, fileline);
-            }else if(el[0].compare("aad") == 0){
-                aad aad_ = aad(this, el, filename, fileline);
+            if(!line.empty() && !hasOnlySpaces(line)){
+                vector<string> el = split(line);
+                transform(el[0].begin(), el[0].end(), el[0].begin(), ::tolower);
+                if(el[0].compare("aaa") == 0){
+                    aaa aaa_ = aaa(this, el, filename, fileline);
+                }else if(el[0].compare("aad") == 0){
+                    aad aad_ = aad(this, el, filename, fileline);
+                }
             }
         }
     }else{
